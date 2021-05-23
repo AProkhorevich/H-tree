@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
@@ -25,11 +25,11 @@ namespace Program1
                 CreateGraph(zedGraphControl1);
             }
         }
-        private void H(double x, double y, double razmer, GraphPane pane)//функция отрисовки одной Н
+        private void H(double x, double y, double razmer, double reduction_ratio, GraphPane pane)//функция отрисовки одной Н
         {
-            LineObj line = new LineObj(Color.Red, x - razmer, y - razmer, x - razmer, y + razmer);
+            LineObj line = new LineObj(Color.Red, x - razmer, y - razmer/reduction_ratio, x - razmer, y + razmer/reduction_ratio);
             LineObj line2 = new LineObj(Color.Red, x - razmer, y, x + razmer, y);
-            LineObj line3 = new LineObj(Color.Red, x + razmer, y - razmer, x + razmer, y + razmer);
+            LineObj line3 = new LineObj(Color.Red, x + razmer, y - razmer/reduction_ratio, x + razmer, y + razmer/reduction_ratio);
             pane.GraphObjList.Add(line);
             pane.GraphObjList.Add(line2);
             pane.GraphObjList.Add(line3);
@@ -38,30 +38,31 @@ namespace Program1
         private void H_fractal(double x1, double y1, double razm_f, double n, GraphPane pane, int depth, double reduction_ratio)
         {
             depth++;
+            razm_f = razm_f / reduction_ratio;//уменьшаем размер в reduction_ratio раз
             //вершины фигуры Н
             double x00; double y00;
             double x01; double y01;
             double x10; double y10;
             double x11; double y11;
             x00 = x1 - razm_f;
-            y00 = y1 - razm_f;
+            y00 = y1 - razm_f / reduction_ratio;
             x01 = x1 - razm_f;
-            y01 = y1 + razm_f;
+            y01 = y1 + razm_f / reduction_ratio;
             x10 = x1 + razm_f;
-            y10 = y1 - razm_f;
+            y10 = y1 - razm_f / reduction_ratio;
             x11 = x1 + razm_f;
-            y11 = y1 + razm_f;
+            y11 = y1 + razm_f / reduction_ratio;
 
+        
 
-            H(x1, y1, razm_f, pane);//рисуем одну фигуру Н
-            razm_f = razm_f / reduction_ratio;//уменьшаем размер в reduction_ratio раз
+            H(x1, y1, razm_f, reduction_ratio, pane);//рисуем одну фигуру Н
 
             if (depth < n)
             {
-                H_fractal(x11, y11, razm_f, n, pane, depth, reduction_ratio);
-                H_fractal(x01, y01, razm_f, n, pane, depth, reduction_ratio);
-                H_fractal(x10, y10, razm_f, n, pane, depth, reduction_ratio);
-                H_fractal(x00, y00, razm_f, n, pane, depth, reduction_ratio);
+                H_fractal(x11, y11, razm_f/reduction_ratio, n, pane, depth, reduction_ratio);
+                H_fractal(x01, y01, razm_f / reduction_ratio, n, pane, depth, reduction_ratio);
+                H_fractal(x10, y10, razm_f / reduction_ratio, n, pane, depth, reduction_ratio);
+                H_fractal(x00, y00, razm_f / reduction_ratio, n, pane, depth, reduction_ratio);
             }
         }
 
@@ -71,10 +72,10 @@ namespace Program1
             GraphPane pane = zgc.GraphPane;
             var rand = new Random();
             int n = Convert.ToInt32(cnt_steps_box.Text);
-            int k;
+            double k;
             try
             {
-                k = Convert.ToInt32(reduction_ratio_box.Text);
+                k = Convert.ToDouble(reduction_ratio_box.Text);
             }
             catch (Exception)
             {
@@ -89,10 +90,10 @@ namespace Program1
             pane.GraphObjList.Clear();
             zgc.IsShowHScrollBar = true;
             zgc.IsShowVScrollBar = true;
-            zgc.ScrollMaxY = 5;
-            zgc.ScrollMinY = -5;
-            zgc.ScrollMaxX = 5;
-            zgc.ScrollMinX = -5;
+            zgc.ScrollMaxY = 1;
+            zgc.ScrollMinY = -1;
+            zgc.ScrollMaxX = 1;
+            zgc.ScrollMinX = -1;
             double line_len = 1;
             H_fractal(0, 0, line_len, n, pane, 0, k);
             zgc.Update();
